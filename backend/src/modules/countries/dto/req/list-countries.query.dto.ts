@@ -1,14 +1,25 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
-import { CountryResDto } from '../res/country.res.dto';
+import { TransformHelper } from '../../../../common/helpers/transform.helper';
 
 export class CountryListReqDto {
-  @ApiProperty({
-    description: 'List of countries',
-    type: [CountryResDto],
-  })
-  data: CountryResDto[];
+  @Type(() => Number)
+  @IsInt()
+  @Max(100)
+  @Min(1)
+  @IsOptional()
+  limit?: number = 10;
 
-  @ApiProperty({ description: 'Total number of countries available' })
-  total: number;
+  @Type(() => Number)
+  @Min(0)
+  @IsInt()
+  @IsOptional()
+  offset?: number = 0;
+
+  @Transform(TransformHelper.toTrim)
+  @Transform(TransformHelper.toLowerCase)
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

@@ -1,106 +1,127 @@
-import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { AxiosResponse } from 'axios';
-import { lastValueFrom } from 'rxjs';
-import { Repository } from 'typeorm';
+import { Injectable, Logger } from '@nestjs/common';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
-import { Country } from '../../../database/entities/country.entity';
-import { CountryBorder } from '../../../database/entities/countryborder.entity';
-import { PopulationData } from '../../../database/entities/populationdata.entity';
+import { BorderCountriesResDto } from '../dto/res/border-countries.res.dto';
+import { CountryApiResponse } from '../dto/res/country.api.res.dto';
+import { ShortCountryResDto } from '../dto/res/short-country.res.dto';
 
 @Injectable()
 export class CountriesService {
-  constructor(
-    @InjectRepository(Country)
-    private countryRepository: Repository<Country>,
-    @InjectRepository(CountryBorder)
-    private countryBorderRepository: Repository<CountryBorder>,
-    @InjectRepository(PopulationData)
-    private populationDataRepository: Repository<PopulationData>,
-    private readonly httpService: HttpService,
-  ) {}
+  private readonly logger = new Logger();
+  private axiosInstanceDataNagerAt: AxiosInstance = axios.create({
+    baseURL: 'https://date.nager.at/api/v3',
+  });
+  private axiosInstanceCountrySnowSpace: AxiosInstance = axios.create({
+    baseURL: 'https://countriesnow.space/api/v0.1',
+  });
 
-  public async getAvailableCountries(): Promise<Country[]> {
-    const response: AxiosResponse<any> = await lastValueFrom(
-      this.httpService.get('https://date.nager.at/api/v3/AvailableCountries'),
-    );
-    const countries = response.data;
-
-    for (const countryData of countries) {
-      const country = new Country();
-      country.countryCode = countryData.iso2;
-      country.name = countryData.name;
-      country.flagUrl = `https://upload.wikimedia.org/wikipedia/commons/${countryData.iso2}.svg`; // Пример URL флага
-
-      await this.countryRepository.save(country);
+  public async getAvailableCountries(): Promise<ShortCountryResDto[]> {
+    try {
+      const response: AxiosResponse<any> =
+        await this.axiosInstanceDataNagerAt.get('/AvailableCountries');
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error fetching available countries:', error);
+      throw error;
     }
-
-    return countries;
   }
 
-  public async getCountryInfo(countryCode: string): Promise<Country> {
-    const countryData = await this.getCountryDetails(countryCode);
-    const populationData = await this.getPopulationData(countryCode);
-    const flagData = await this.getFlagData(countryCode);
+  public async getCountryInfo(
+    countryCode: string,
+  ): Promise<CountryApiResponse> {
+    // const countryData = await this.getCountryDetails(countryCode);
+    // const populationData = await this.getPopulationData(countryCode);
+    // const flagData = await this.getFlagData(countryCode);
+    //
+    // let country = await this.countryRepository.findOne({
+    //   where: { countryCode },
+    // });
+    //
+    // if (!country) {
+    //   country = new CountryEntity();
+    //   country.countryCode = countryCode;
+    // }
+    //
+    // country.name = countryData.name;
+    // country.region = countryData.region;
+    // country.flagUrl = flagData.flag;
+    //
+    // await this.countryRepository.save(country);
+    //
+    // for (const population of populationData) {
+    //   const populationRecord = new PopulationDataEntity();
+    //   populationRecord.year = population.year;
+    //   populationRecord.value = population.value;
+    //   populationRecord.country = country;
+    //
+    //   await this.populationDataRepository.save(populationRecord);
+    // }
 
-    let country = await this.countryRepository.findOne({
-      where: { countryCode },
-    });
+    return {} as CountryApiResponse;
+  }
 
-    if (!country) {
-      country = new Country();
-      country.countryCode = countryCode;
+  private async getCountryDetails(
+    countryCode: string,
+  ): Promise<BorderCountriesResDto> {
+    const response: AxiosResponse<any> =
+      await this.axiosInstanceDataNagerAt.get(
+        `/api/v3/CountryInfo/${countryCode}`,
+      );
+
+    const countryData = response.data;
+
+    return {
+      commonName: countryData.commonName || '',
+      officialName: countryData.officialName || '',
+      countryCode: countryData.countryCode || '',
+      region: countryData.region || '',
+      borders: (countryData.borders || []).map((border: any) => ({
+        commonName: border.commonName || '',
+        officialName: border.officialName || '',
+        countryCode: border.countryCode || '',
+        region: border.region || '',
+      })),
+    };
+  }
+
+  private async getPopulationData(
+    countryCode: string,
+  ): Promise<{ populationCounts: { year: number; value: number }[] }> {
+    try {
+      const response: AxiosResponse<any> =
+        await this.axiosInstanceCountrySnowSpace.get('/countries/population');
+
+      const country = response.data.data.find(
+        (item: any) => item.iso3 === countryCode.toUpperCase(),
+      );
+
+      if (country) {
+        return { populationCounts: country.populationCounts };
+      }
+
+      return { populationCounts: [] };
+    } catch (error) {
+      console.error('Error fetching population data:', error);
+      return { populationCounts: [] };
     }
+  }
 
-    country.name = countryData.name;
-    country.region = countryData.region;
-    country.flagUrl = flagData.flag;
+  private async getFlagData(countryCode: string): Promise<{ flag: string }> {
+    try {
+      const response: AxiosResponse<any> =
+        await this.axiosInstanceCountrySnowSpace.get('/countries/flag/images');
 
-    await this.countryRepository.save(country);
+      const country = response.data.data.find(
+        (item: any) =>
+          item.iso2 === countryCode.toUpperCase() ||
+          item.iso3 === countryCode.toUpperCase(),
+      );
 
-    for (const population of populationData) {
-      const populationRecord = new PopulationData();
-      populationRecord.year = population.year;
-      populationRecord.value = population.value;
-      populationRecord.country = country;
-
-      await this.populationDataRepository.save(populationRecord);
+      if (country) {
+        return { flag: country.data.flag };
+      }
+    } catch (error) {
+      console.error('Error fetching flag data:', error);
     }
-
-    return country;
-  }
-
-  private async getCountryDetails(countryCode: string): Promise<any> {
-    const response: AxiosResponse<any> = await lastValueFrom(
-      this.httpService.get(
-        `https://date.nager.at/api/v3/CountryInfo/${countryCode}`,
-      ),
-    );
-    return response.data;
-  }
-
-  private async getPopulationData(countryCode: string): Promise<any[]> {
-    const response: AxiosResponse<any> = await lastValueFrom(
-      this.httpService.post(
-        'https://countriesnow.space/api/v0.1/countries/population',
-        {
-          country: countryCode,
-        },
-      ),
-    );
-    return response.data.data?.populationCounts || [];
-  }
-
-  private async getFlagData(countryCode: string): Promise<any> {
-    const response: AxiosResponse<any> = await lastValueFrom(
-      this.httpService.post(
-        'https://countriesnow.space/api/v0.1/countries/flag/images',
-        {
-          country: countryCode,
-        },
-      ),
-    );
-    return { flag: response.data.data?.flag || '' };
   }
 }
