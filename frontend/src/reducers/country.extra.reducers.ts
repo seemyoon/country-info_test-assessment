@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { AxiosError } from 'axios';
-import { countriesService } from '../src/services/api.service';
+import { countriesService } from '../services/api.service';
 
 export const loadCountries = createAsyncThunk(
   'countriesSlice/loadCountries',

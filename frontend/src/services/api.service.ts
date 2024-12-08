@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { baseURL, urlBuilder } from '../constants/url';
+import { ICountry } from '../models/interfaces/ICountry';
+import { ICountriesResponse } from '../models/interfaces/ICountriesResponse';
 
 const axiosInstance = axios.create({
   baseURL: baseURL,
@@ -12,11 +14,13 @@ axiosInstance.interceptors.request.use(request => {
 
 const countriesService = {
   getAllCountries: async (offset: string) => {
-    const res = await axiosInstance.get(urlBuilder.allCountries, { params: { limit: 20, offset } });
+    const res = await axiosInstance.get<ICountriesResponse>(urlBuilder.allCountries, { params: { limit: 20, offset } });
+    console.log(res.data)
     return res.data;
   },
   getCountryByCode: async (countryCode: string) => {
-    return await axiosInstance.get(urlBuilder.getCountryByCountryCode(countryCode));
+    const res = await axiosInstance.get<ICountry>(urlBuilder.getCountryByCountryCode(countryCode));
+    return res.data;
   },
 };
 
