@@ -1,10 +1,11 @@
+import { BorderCountryResDto } from './border-country.res.dto';
+
 export interface CountryApiResponse {
   countryCode: string;
-  name: string;
   commonName?: string;
   officialName?: string;
   region?: string;
-  borders?: { countryCode: string; commonName: string; officialName: string }[];
+  borders?: BorderCountryResDto[];
   flag?: string;
   populationCounts?: { year: number; value: number }[];
 }

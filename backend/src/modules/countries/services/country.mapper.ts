@@ -10,27 +10,31 @@ import { ShortCountryResDto } from '../dto/res/short-country.res.dto';
 export class CountryMapper {
   public static toFullInfoDto(data: CountryApiResponse): FullInfoCountryResDto {
     return {
+      commonName: data.commonName,
+      officialName: data.officialName,
       countryCode: data.countryCode,
-      commonName: data.commonName || '',
-      officialName: data.officialName || '',
-      region: data.region || '',
-      flag: data.flag || '',
-      populationCounts: data.populationCounts || [],
+      region: data.region,
+      flag: data?.flag,
+      populationCounts: data.populationCounts
+        ? data.populationCounts.map((item) => ({
+            year: item.year,
+            value: item.value,
+          }))
+        : [],
       borders: data.borders
-        ? data.borders.map((border) => border.countryCode)
+        ? data.borders.map((border) => ({
+            commonName: border.commonName,
+            countryCode: border.countryCode,
+            officialName: border.officialName,
+            region: border.region,
+            borders: null,
+          }))
         : [],
     };
   }
 
-  public static toShortResDto(data: any): ShortCountryResDto {
-    return {
-      countryCode: data.countryCode,
-      name: data.name,
-    };
-  }
-
   public static toResDtoList(
-    data: any[],
+    data: ShortCountryResDto[],
     total: number,
     query: CountryListReqDto,
   ): CountryListResDto {
@@ -38,6 +42,13 @@ export class CountryMapper {
       data: data.map((item) => CountryMapper.toShortResDto(item)),
       total,
       ...query,
+    };
+  }
+
+  private static toShortResDto(data: any): ShortCountryResDto {
+    return {
+      countryCode: data.countryCode,
+      name: data.name,
     };
   }
 }
