@@ -6,6 +6,6 @@ export interface CountryApiResponse {
   officialName?: string;
   region?: string;
   borders?: BorderCountryResDto[];
-  flag?: string;
+  flag?: string | null;
   populationCounts?: { year: number; value: number }[];
 }

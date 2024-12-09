@@ -1,0 +1,27 @@
+.countryItem {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: box-shadow 0.3s ease;
+    margin-bottom: 1rem;
+    background-color: #fff;
+}
+
+.countryItem:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.countryLink {
+    text-decoration: none;
+    color: #2834bf;
+    transition: color 0.3s ease;
+}
+
+.countryLink:hover {
+    color: #daad7c;
+}
+
+.countryName {
+    margin: 0;
+    font-size: 1.5rem;
+}

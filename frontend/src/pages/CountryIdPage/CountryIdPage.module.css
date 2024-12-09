@@ -1,0 +1,61 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+.loader {
+    font-size: 1.5rem;
+    color: #555;
+    text-align: center;
+    margin-top: 50px;
+}
+
+.flag {
+    width: 100px;
+    height: auto;
+    border: 1px solid #ddd;
+}
+
+.countryName {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.info p {
+    font-size: 1.2rem;
+    margin: 10px 0;
+}
+
+.chart {
+    margin-top: 30px;
+}
+
+.borderCountries {
+    margin-top: 40px;
+}
+
+.borderList {
+    list-style: none;
+    padding: 0;
+}
+
+.borderItem {
+    margin: 5px 0;
+}
+
+.borderLink {
+    text-decoration: none;
+    color: #82b7bf;
+}
+
+.borderLink:hover {
+    text-decoration: underline;
+}

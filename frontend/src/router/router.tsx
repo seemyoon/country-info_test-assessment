@@ -1,8 +1,8 @@
 import { createBrowserRouter, RouteObject } from 'react-router-dom';
 import CountryMainLayout from '../layouts/CountryMainLayout';
 import React from 'react';
-import CountryPage from '../pages/CountryPage';
-import CountryIdPage from '../pages/CountryIdPage';
+import CountryPage from '../pages/CountryPage/CountryPage';
+import CountryIdPage from '../pages/CountryIdPage/CountryIdPage';
 
 const routes: RouteObject[] = [{
   path: '/', element: <CountryMainLayout />, children: [

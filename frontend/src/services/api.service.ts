@@ -15,11 +15,11 @@ axiosInstance.interceptors.request.use(request => {
 const countriesService = {
   getAllCountries: async (offset: string) => {
     const res = await axiosInstance.get<ICountriesResponse>(urlBuilder.allCountries, { params: { limit: 20, offset } });
-    console.log(res.data)
     return res.data;
   },
   getCountryByCode: async (countryCode: string) => {
     const res = await axiosInstance.get<ICountry>(urlBuilder.getCountryByCountryCode(countryCode));
+    console.log(res.data);
     return res.data;
   },
 };

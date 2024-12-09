@@ -15,7 +15,7 @@ export class CountryMapper {
       countryCode: data.countryCode,
       region: data.region,
       flag: data?.flag,
-      populationCounts: data.populationCounts
+      populationCounts: data?.populationCounts
         ? data.populationCounts.map((item) => ({
             year: item.year,
             value: item.value,

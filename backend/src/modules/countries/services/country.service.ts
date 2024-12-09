@@ -61,8 +61,8 @@ export class CountriesService {
         officialName: countryData.officialName,
         countryCode: countryData.countryCode,
         region: countryData.region,
-        flag: flagData?.flag || '',
-        populationCounts: populationData.populationCounts,
+        flag: flagData?.flag || null,
+        populationCounts: populationData?.populationCounts,
         borders: countryData.borders,
       };
     } else {
@@ -105,22 +105,14 @@ export class CountriesService {
     countryCode: string,
   ): Promise<{ populationCounts: { year: number; value: number }[] }> {
     try {
-      const responseISO: AxiosResponse<any> =
-        await this.axiosInstanceCountrySnowSpace.get('/countries/iso');
+      const response: AxiosResponse<any> =
+        await this.axiosInstanceDataNagerAt.get(`/CountryInfo/${countryCode}`);
 
-      const isoData = responseISO.data.data;
-
-      const isoEntry = isoData.find(
-        (item: any) => item.Iso2.toUpperCase() === countryCode.toUpperCase(),
-      );
-
-      if (!isoEntry) {
-        throw new NotFoundException(
-          `ISO code for country ${countryCode} not found`,
-        );
+      if (!response || !response.data) {
+        throw new NotFoundException(`Country ${countryCode} not found`);
       }
 
-      const iso3Code = isoEntry.Iso3;
+      const countryData = response.data.commonName;
 
       const responsePopulation: AxiosResponse<any> =
         await this.axiosInstanceCountrySnowSpace.get('/countries/population');
@@ -128,16 +120,10 @@ export class CountriesService {
       const populationData = responsePopulation.data.data;
 
       const country = populationData.find(
-        (item: any) => item.code.toUpperCase() === iso3Code.toUpperCase(),
+        (item: any) => item.country.toLowerCase() === countryData.toLowerCase(),
       );
 
-      if (!country) {
-        throw new NotFoundException(
-          `Population data for country ${countryCode} not found`,
-        );
-      }
-
-      return { populationCounts: country.populationCounts };
+      return { populationCounts: country ? country.populationCounts : null };
     } catch (error) {
       console.error('Error fetching population data:', error);
       throw new NotFoundException('Error fetching population data');
@@ -147,21 +133,22 @@ export class CountriesService {
   private async getFlagData(countryCode: string): Promise<{ flag: string }> {
     try {
       const response: AxiosResponse<any> =
-        await this.axiosInstanceCountrySnowSpace.get('/countries/flag/images');
+        await this.axiosInstanceDataNagerAt.get(`/CountryInfo/${countryCode}`);
 
       if (!response || !response.data) {
-        throw new NotFoundException(`Flag data for ${countryCode} not found`);
+        throw new NotFoundException(`Country ${countryCode} not found`);
       }
 
-      const country = response.data.data.find(
-        (item: any) => item.iso2 === countryCode.toUpperCase(),
-      );
+      const countryData = response.data.commonName;
 
-      if (country) {
-        return { flag: country.flag };
-      } else {
-        throw new NotFoundException(`Flag not found for ${countryCode}`);
-      }
+      const responseFlag: AxiosResponse<any> =
+        await this.axiosInstanceCountrySnowSpace.get('/countries/flag/images');
+
+      const flagData = responseFlag.data.data;
+
+      const country = flagData.find((item: any) => item.name === countryData);
+
+      return { flag: country ? country.flag : null };
     } catch (error) {
       console.error('Error fetching flag data:', error);
       throw new NotFoundException(

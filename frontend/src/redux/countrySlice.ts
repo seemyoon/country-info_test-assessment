@@ -16,7 +16,6 @@ export const countrySlice = createSlice({
     builder
       .addCase(loadCountries.fulfilled, (state, action) => {
         state.countries = action.payload.data;
-        console.log('countries' + state.countries);
         state.total = action.payload.total;
       })
       .addCase(loadCountry.fulfilled, (state, action) => {
